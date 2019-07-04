@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="ERROR">
+    <Appenders>
+        <Console name="stdout" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d] (%c) - %p %m %n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="error">
+            <AppenderRef ref="stdout"/>
+        </Root>
+        <Logger name="org.apache.kafka.clients" level="warn" additivity="false">
+            <AppenderRef ref="stdout"/>
+        </Logger>
+        <Logger name="de.fhg.ipa.null70.simple_kafka_mqtt_connector" level="info" additivity="false">
+            <AppenderRef ref="stdout"/>
+        </Logger>
+    </Loggers>
+</Configuration>

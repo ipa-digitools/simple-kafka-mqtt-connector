@@ -1,0 +1,3 @@
+.idea
+target
+!target/*jar-with-dependencies.jar

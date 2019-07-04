@@ -1,0 +1,18 @@
+version: '2'
+
+services:
+
+  simple-kafka-mqtt-connector:
+    image: arthurgrigo/simple-kafka-mqtt-connector:0.0.1-SNAPSHOT
+    restart: always
+    hostname: simple-kafka-mqtt-connector
+    container_name: simple-kafka-mqtt-connector
+    environment:
+      KAFKA_HOST: 172.21.5.239 #EDITME IP THROUGH WHICH THE KAFKA BROKER WILL BE REACHED
+      KAFKA_PORT: 9092
+      KAFKA_CLIENT_ID: simple-kafka-mqtt-connector-1
+      MQTT_HOST: 172.21.5.239 #EDITME IP THROUGH WHICH THE MQTT BROKER WILL BE REACHED
+      MQTT_PORT: 1883
+      MQTT_CLIENT_ID: simple-kafka-mqtt-connector-1
+      MQTT_QOS: 2
+      TOPIC_MAPPING: robotgroup001/robot001>>>test;robotgroup001/robot002>>>test02;robotgroup001/robot003>>>test03 #EDITME mqttTopicA>>>kafkaTopicA;mqttTopicB>>>kafkaTopicB;mqttTopicC>>>kafkaTopicC

@@ -1,0 +1,60 @@
+version: '2'
+
+services:
+
+  simple-kafka-mqtt-connector:
+    image: arthurgrigo/simple-kafka-mqtt-connector:0.0.1-SNAPSHOT
+    restart: always
+    hostname: simple-kafka-mqtt-connector
+    container_name: simple-kafka-mqtt-connector
+    env_file:
+      - env.list
+    networks:
+      - kafka_mqtt_network
+
+  mosquitto:
+    image: eclipse-mosquitto:1.5.5
+    restart: always
+    hostname: mosquitto
+    container_name: mosquitto
+    ports:
+      - "1883:1883"
+    networks:
+      - kafka_mqtt_network
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    restart: always
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    env_file:
+      - env.list
+    volumes:
+      - ./zookeeper/data:/data
+      - ./zookeeper/datalog:/datalog
+    networks:
+      - kafka_mqtt_network
+
+  kafka:
+    image: wurstmeister/kafka:2.11-2.0.0
+    restart: always
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    env_file:
+      - env.list
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - kafka_mqtt_network
+
+networks:
+  kafka_mqtt_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.115.0/24
+          gateway: 192.168.115.1
