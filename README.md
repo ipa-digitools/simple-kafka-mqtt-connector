@@ -48,7 +48,7 @@
 
 * See [docker-compose-examples](docker-compose)
 
-####Standalone
+#### Standalone
 
 * Stand-alone container
 
@@ -57,7 +57,7 @@
 * Run: `docker-compose up -d`
 
 
-####Full Stack
+#### Full Stack
 
 * Full Stack (mqtt-broker, zookeeper, kafka-broker, simple-kafka-mqtt-connector)
 
