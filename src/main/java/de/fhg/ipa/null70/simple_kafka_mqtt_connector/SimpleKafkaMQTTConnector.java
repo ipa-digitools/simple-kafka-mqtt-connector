@@ -14,16 +14,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.paho.client.mqttv3.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class SimpleKafkaMQTTConnector {
     private static final Logger logger = LogManager.getLogger(SimpleKafkaMQTTConnector.class);
 
-    // Key = mqtt-topic input , Value = kafka-topic for output
-    private static HashMap<String, String> mqttKafkaTopicMap = new HashMap<String, String>();
+    // Key = mqtt-topic input , Value = kafka-topics for output
+    private static HashMap<String, ArrayList<String>> mqttKafkaTopicMap = new HashMap();
 
 
     public void run() {
@@ -58,7 +55,7 @@ public class SimpleKafkaMQTTConnector {
         logger.info("----------------------------------------");
         logger.info("");
 
-        // read config file into the system
+        // Initialize topic routing map
         initTopicsRoutingMap(topicMapping);
 
         logger.trace("Creating Kafka Producer...");
@@ -70,7 +67,7 @@ public class SimpleKafkaMQTTConnector {
         KafkaProducer<Integer, String> kafkaProducer = new KafkaProducer<>(props);
         logger.trace("Start sending messages...");
 
-        // Setup and start Mqtt Client
+        // Setup and start the mqtt client
         initMqttClient(mqttHost, mqttPort, mqttClientId, mqttQos, kafkaProducer);
     }
 
@@ -88,7 +85,7 @@ public class SimpleKafkaMQTTConnector {
         }
 
         MqttConnectOptions options = new MqttConnectOptions();
-        //Setzen einer Persistent Session
+        // use a persistent session..
         options.setCleanSession(false);
 
         options.setWill(
@@ -116,27 +113,27 @@ public class SimpleKafkaMQTTConnector {
 
 
         client.setCallback(new MqttCallback() {
-            int i = 0;
 
             @Override
             public void connectionLost(Throwable throwable) { }
 
             @Override
-            public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
-                // Checks through which mqtt-topic this message was sent and sends it to the pre-configured corresponding kafka topic..
+            public void messageArrived(String mqttTopic, MqttMessage mqttMessage) throws Exception {
+                // Checks through which mqtt-topic this message was sent and sends it to the pre-configured corresponding kafka topics..
 
                 String message = new String(mqttMessage.getPayload());
-                logger.info(topic + " - " + message);
+                logger.info(mqttTopic + " - " + message);
 
                 try {
-                    if(!mqttKafkaTopicMap.get(topic).isEmpty()) {
-
-                        kafkaProducer.send(new ProducerRecord<>(mqttKafkaTopicMap.get(topic), i++, message));
+                    if(mqttKafkaTopicMap.containsKey(mqttTopic)) {
+                        mqttKafkaTopicMap.get(mqttTopic).forEach(kafkaTopic -> {
+                            kafkaProducer.send(new ProducerRecord<>(kafkaTopic, message));
+                        });
                         logger.trace("send Message to kafka - " + message);
                     }
                 } catch (KafkaException e) {
                     logger.error("Exception occurred – Check log for more details.\n" + e.getMessage());
-                    logger.warn("There seems to be issue with the kafka connection. Currently no messages are forwarded to the kafka cluster!!!!");
+                    logger.warn("There seems to be an issue with the kafka connection. Currently no messages are forwarded to the kafka cluster!!!!");
 //                    System.exit(-1);
                 }
 
@@ -151,8 +148,13 @@ public class SimpleKafkaMQTTConnector {
         logger.info("Setting up topic mapping (MQTT >>> Kafka) ...");
         Arrays.asList(topicMappingString.split(";")).forEach(s -> {
                     String[] pair = s.split(">>>");
-                    mqttKafkaTopicMap.put( pair[0], pair[1]);
-                    logger.info(pair[0] + " >>> " + pair[1]);
+                    String mqttTopic = pair[0];
+                    String kafkaTopic = pair[1];
+                    if( !mqttKafkaTopicMap.containsKey(mqttTopic) ){
+                        mqttKafkaTopicMap.put(mqttTopic, new ArrayList<String>());
+                    }
+                    mqttKafkaTopicMap.get(mqttTopic).add(kafkaTopic);
+                    logger.info(mqttTopic + " >>> " + kafkaTopic);
                 }
         );
     }
