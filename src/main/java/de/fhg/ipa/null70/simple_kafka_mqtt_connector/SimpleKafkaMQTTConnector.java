@@ -1,9 +1,5 @@
 package de.fhg.ipa.null70.simple_kafka_mqtt_connector;
 
-import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -23,41 +19,18 @@ public class SimpleKafkaMQTTConnector {
     private static HashMap<String, ArrayList<String>> mqttKafkaTopicMap = new HashMap();
 
 
-    public void run() {
-        CompositeConfiguration config = new CompositeConfiguration();
-        config.addConfiguration(new SystemConfiguration());
-
-        config.addConfiguration(new PropertiesConfiguration());
-        try {
-            config.addConfiguration(new PropertiesConfiguration("application.properties"));
-        } catch (ConfigurationException e) {
-            e.printStackTrace();
-        }
-
-        // Properties configuration
-        String kafkaHost = config.getString("kafka.host");
-        String kafkaPort = config.getString("kafka.port");
-        String kafkaClientId = config.getString("kafka.client.id");
-
-        String mqttHost = config.getString("mqtt.host");
-        String mqttPort = config.getString("mqtt.port");
-        String mqttClientId = config.getString("mqtt.client.id");
-        Integer mqttQos = Integer.parseInt(config.getString("mqtt.qos").trim());
-
-        String topicMapping = config.getString("topic.mapping");
-
-        logger.info("-------- APPLICATION PROPERTIES --------");
-        logger.info("kafkaHost = " + kafkaHost);
-        logger.info("kafkaPort = " + kafkaPort);
-        logger.info("mqttHost = " + mqttHost);
-        logger.info("mqttPort = " + mqttPort);
-        logger.info("topicMapping = " + topicMapping);
-        logger.info("----------------------------------------");
-        logger.info("");
-
+    public void run(String kafkaHost, String kafkaPort, String kafkaClientId, String mqttHost, String mqttPort, String mqttClientId, Integer mqttQos, String topicMapping) {
         // Initialize topic routing map
         initTopicsRoutingMap(topicMapping);
 
+        // Init and start kafka producer
+        KafkaProducer<Integer, String> kafkaProducer = initKafkaProducer(kafkaHost, kafkaPort, kafkaClientId);
+
+        // Setup and start the mqtt client
+        initMqttClient(mqttHost, mqttPort, mqttClientId, mqttQos, kafkaProducer);
+    }
+
+    private KafkaProducer<Integer, String> initKafkaProducer(String kafkaHost, String kafkaPort, String kafkaClientId) {
         logger.trace("Creating Kafka Producer...");
         Properties props = new Properties();
         props.put(ProducerConfig.CLIENT_ID_CONFIG, kafkaClientId);
@@ -65,10 +38,8 @@ public class SimpleKafkaMQTTConnector {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, IntegerSerializer.class.getName());
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         KafkaProducer<Integer, String> kafkaProducer = new KafkaProducer<>(props);
-        logger.trace("Start sending messages...");
-
-        // Setup and start the mqtt client
-        initMqttClient(mqttHost, mqttPort, mqttClientId, mqttQos, kafkaProducer);
+        logger.trace("Kafka producer ready to produce...");
+        return kafkaProducer;
     }
 
     private void initMqttClient(String mqttHost, String mqttPort, String mqttClientId, Integer mqttQos, KafkaProducer<Integer, String> kafkaProducer) {
