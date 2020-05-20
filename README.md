@@ -1,4 +1,6 @@
 # A simple MQTT to Apache Kafka Connector 
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fipa-digitools%2Fsimple-kafka-mqtt-connector.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fipa-digitools%2Fsimple-kafka-mqtt-connector?ref=badge_shield)
+
 
 
 
@@ -74,3 +76,5 @@
 
 ## License
 See [LICENSE](LICENSE) file for License
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fipa-digitools%2Fsimple-kafka-mqtt-connector.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fipa-digitools%2Fsimple-kafka-mqtt-connector?ref=badge_large)
