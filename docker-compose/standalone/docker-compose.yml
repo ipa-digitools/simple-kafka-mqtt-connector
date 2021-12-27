@@ -3,7 +3,7 @@ version: '2'
 services:
 
   simple-kafka-mqtt-connector:
-    image: arthurgrigo/simple-kafka-mqtt-connector:0.0.1-SNAPSHOT
+    image: arthurgrigo/simple-kafka-mqtt-connector:0.1.0
     restart: always
     hostname: simple-kafka-mqtt-connector
     container_name: simple-kafka-mqtt-connector

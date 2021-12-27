@@ -3,7 +3,7 @@ version: '2'
 services:
 
   simple-kafka-mqtt-connector:
-    image: arthurgrigo/simple-kafka-mqtt-connector:0.0.1-SNAPSHOT
+    image: arthurgrigo/simple-kafka-mqtt-connector:0.1.0
     restart: always
     hostname: simple-kafka-mqtt-connector
     container_name: simple-kafka-mqtt-connector
@@ -13,7 +13,7 @@ services:
       - kafka_mqtt_network
 
   mosquitto:
-    image: eclipse-mosquitto:1.5.5
+    image: eclipse-mosquitto:2.0.14
     restart: always
     hostname: mosquitto
     container_name: mosquitto
@@ -38,7 +38,7 @@ services:
       - kafka_mqtt_network
 
   kafka:
-    image: wurstmeister/kafka:2.11-2.0.0
+    image: wurstmeister/kafka:2.13-2.8.1
     restart: always
     hostname: kafka
     container_name: kafka

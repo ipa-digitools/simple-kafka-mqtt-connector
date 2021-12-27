@@ -1,10 +1,10 @@
-FROM openjdk:8u181-jdk-slim
+FROM openjdk:8u312-jdk-slim
 
 ENV SERVER_INSTALL_FOLDER=/app/kafka-mqtt-connector/
-ENV JAR_FILE_NAME=simple_kafka_mqtt_connector-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+ENV JAR_FILE_NAME=simple_kafka_mqtt_connector-0.1.0-jar-with-dependencies.jar
 
 # Application propertis
-ENV KAFKA_HOST=localhostss
+ENV KAFKA_HOST=localhosts
 ENV KAFKA_PORT=9092
 ENV KAFKA_CLIENT_ID=testing-kafka-producer-1
 
