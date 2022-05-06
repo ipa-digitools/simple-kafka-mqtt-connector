@@ -1,5 +1,11 @@
 package de.fhg.ipa.null70.simple_kafka_mqtt_connector;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -8,9 +14,13 @@ import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.paho.client.mqttv3.*;
-
-import java.util.*;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 public class SimpleKafkaMQTTConnector {
     private static final Logger logger = LogManager.getLogger(SimpleKafkaMQTTConnector.class);
@@ -40,6 +50,25 @@ public class SimpleKafkaMQTTConnector {
         KafkaProducer<Integer, String> kafkaProducer = new KafkaProducer<>(props);
         logger.trace("Kafka producer ready to produce...");
         return kafkaProducer;
+    }
+
+    private HashMap<String, ArrayList<String>> checkForKey(String mqttTopic)
+    {
+        HashMap<String, ArrayList<String>> keysForWhichTheTopicApplies = new HashMap<String, ArrayList<String>>();
+        try{
+            for (Map.Entry mapElement : mqttKafkaTopicMap.entrySet()) 
+            {
+                String key = (String)mapElement.getKey();
+                if(MqttTopic.isMatched(key, mqttTopic))
+                {
+                    keysForWhichTheTopicApplies.put((String)mapElement.getKey(), ( ArrayList<String>)mapElement.getValue());
+                }
+            }
+        }catch(Exception ex)
+        {
+            ex.printStackTrace();
+        }
+        return keysForWhichTheTopicApplies;
     }
 
     private void initMqttClient(String mqttHost, String mqttPort, String mqttClientId, Integer mqttQos, KafkaProducer<Integer, String> kafkaProducer) {
@@ -96,11 +125,14 @@ public class SimpleKafkaMQTTConnector {
                 logger.info(mqttTopic + " - " + message);
 
                 try {
-                    if(mqttKafkaTopicMap.containsKey(mqttTopic)) {
-                        mqttKafkaTopicMap.get(mqttTopic).forEach(kafkaTopic -> {
-                            kafkaProducer.send(new ProducerRecord<>(kafkaTopic, message));
-                        });
-                        logger.trace("send Message to kafka - " + message);
+                    HashMap<String, ArrayList<String>> erg = checkForKey(mqttTopic);
+                    if(erg.size()>=1) {
+                        for (Map.Entry mapElement : erg.entrySet()) {
+                            ((ArrayList<String>)mapElement.getValue()).forEach(kafkaTopic -> {
+                                kafkaProducer.send(new ProducerRecord<>(kafkaTopic, message));
+                            });
+                            logger.trace("send Message to kafka - " + message);
+                        }
                     }
                 } catch (KafkaException e) {
                     logger.error("Exception occurred – Check log for more details.\n" + e.getMessage());
